@@ -53,7 +53,7 @@ NeuralNetwork.prototype.prop = function(inputs) {
     }
     return outputs;
 };
-// Back propagation, performs gradient descent and returns cost
+// Backpropagation, performs gradient descent and returns cost
 NeuralNetwork.prototype.backprop = function(inputs, desired, strength) {
     var cost = 0;
     strength = strength || 1;
