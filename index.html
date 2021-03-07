@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<!--
+Jentacular Gent
+Neural Network Backpropgation
+-->
+
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Neural Network Backpropagation</title>
+        <style>
+        </style>
+    </head>
+    <body>
+    	<div>
+			<input type="number" id="hiddens" name="hiddens" value="5" min="1">
+			<label for="hiddens"> neurons in the hidden layer</label><br>
+			Training data: <input type="file" id="training"><br><br>
+			<button onclick="start()" id="button">Start</button><br><br>
+			<input type="number" id="batch" name="batch" value="100" min="1">
+			<label for="batch"> Batch size</label><br>
+        	Training rate: <input type="range" min="1" max="100" value="100" id="rate"><br><br>
+			Average cost: <span id="cost">N/A</span><br><br>
+			<button onclick="copyNetworkData()">Copy weights and biases</button>
+    	</div>
+    </body>
+    <script src="neural-network.js"></script>
+    <script>
+    	function id(x) { return document.getElementById(x); }
+
+    	var batch = id("batch");
+    	var batchSize = +batch.value;
+    	batch.addEventListener("input", function() {
+    		batchSize = +batch.value;
+    	});
+
+    	var rate = id("rate");
+    	var trainingRate = rate.value / 100;
+    	rate.addEventListener("input", function() {
+    		trainingRate = rate.value / 100;
+    	});
+
+    	var net;
+		var fileReader = new FileReader();
+		var trainingData = [];
+		fileReader.onload = function(fileLoadedEvent) {
+			trainingData = [];
+			var samples = fileLoadedEvent.target.result.split("\n");
+			for(var i = 0; i < samples.length; i += 1) {
+				var inout = samples[i].split("|");
+				trainingData.push([inout[0].split(" "), inout[1].split(" ")]);
+			}
+    		net = new NeuralNetwork(trainingData[0][0].length, +id("hiddens").value, trainingData[0][1].length);
+			run();
+		};
+    	function start() {
+			fileReader.readAsText(id("training").files[0], "UTF-8");
+    		id("button").innerHTML = "Restart";
+    	}
+    	function run() {
+    		var cost = 0;
+    		for(var i = 0; i < batchSize; i += 1) {
+    			var sample = trainingData[(Math.random() * trainingData.length) | 0];
+    			cost += net.backprop(sample[0], sample[1], trainingRate);
+    		}
+    		id("cost").innerHTML = cost / batchSize;
+    		setTimeout(run, 0);
+    	}
+
+    	function copyNetworkData() {
+    		console.log(net.layer);
+    		console.log(net.outputs);
+    		var result = "[";
+    		for(var i = 0; i < net.layer.length; i += 1) {
+    			result += "[[";
+    			for(var j = 0; j < net.layer[i][0].length; j += 1) {
+    				result += net.layer[i][0][j];
+    				if(j < net.layer[i][0].length - 1) {
+    					result += ",";
+    				}
+    			}
+    			result += "]," + net.layer[i][1] + "]";
+    			if(i < net.layer.length - 1) {
+    				result += ",";
+    			}
+    		}
+    		result += "]   [";
+    		for(var i = 0; i < net.outputs.length; i += 1) {
+    			result += "[[";
+    			for(var j = 0; j < net.outputs[i][0].length; j += 1) {
+    				result += net.outputs[i][0][j];
+    				if(j < net.outputs[i][0].length - 1) {
+    					result += ",";
+    				}
+    			}
+    			result += "]," + net.outputs[i][1] + "]";
+    			if(i < net.outputs.length - 1) {
+    				result += ",";
+    			}
+    		}
+    		result += "]";
+    		navigator.clipboard.writeText(result).then(function() {}, function() {});
+    	}
+    </script>
+</html>
